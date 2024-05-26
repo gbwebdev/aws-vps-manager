@@ -1,0 +1,121 @@
+- name: Set the hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+  become: true
+
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    upgrade: yes
+    update_cache: yes
+  become: true
+
+- name: Install required packages
+  ansible.builtin.apt:
+    pkg: "{{ packages_to_install }}"
+  become: true
+
+- name: Install ddclient
+  ansible.builtin.apt:
+    pkg: ddclient
+  become: true
+
+- name: Setup ddclient
+  ansible.builtin.template:
+    src: ddclient.conf
+    dest: /etc/ddclient/ddclient.conf
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+
+- name: Restart ddclient 
+  ansible.builtin.service:
+    name: ddclient
+    state: restarted
+    enabled: true
+    masked: no
+  become: true
+    
+- name: Creating teacher group
+  ansible.builtin.group:
+    name: teacher
+    state: present
+  become: true
+
+- name: Creating ssh group
+  ansible.builtin.group:
+    name: ssh
+    state: present
+  become: true
+
+- name: Creating teacher account
+  ansible.builtin.user:
+    name: "{{ teacher.username }}"
+    comment: "{{ teacher.name }}"
+    group: "{{ teacher.username }}"
+    groups: ssh,teacher, sudo
+    append: yes
+    password: "{{ teacher.password }}"  # Use vault
+    shell: /bin/bash
+  become: true
+
+
+- name: Set up authorized_keys for teacher
+  ansible.posix.authorized_key:
+    user: "{{ teacher.username }}"
+    state: present
+    key:  "{{ item }}"
+  with_items: "{{ teacher.ssh_keys }}"
+  become: true
+
+- name: Creating students group
+  ansible.builtin.group:
+    name: students
+    state: present
+  become: true
+
+- name: Creating students individual groups
+  ansible.builtin.group:
+    name: "{{ item.username }}"
+    state: present
+  with_items: "{{ students }}"
+  become: true
+
+- name: Creating student users
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    comment: "{{ item.name }}"
+    group: "{{ item.username }}"
+    groups: ssh,students
+    append: yes
+    password: "{{ item.password  | password_hash('sha512', 'b1fjbefj4azd9jqui') }}"
+    shell: /bin/bash
+  with_items: "{{ students }}"
+  become: true
+
+- name: Set up student authorized_keys
+  ansible.posix.authorized_key:
+    user: "{{ item.username }}"
+    state: present
+    key:  "{{ item.ssh_key }}"
+  with_items: "{{ students }}"
+  become: true
+
+- name: Set-up directory for student session history
+  ansible.builtin.file:
+    path: "/home/{{ item.username }}/.bash_logs"
+    state: directory
+    mode: '0754'
+  with_items: "{{ students }}"
+  become: true
+
+- name: Set-up student .bashrc
+  ansible.builtin.copy:
+    src: student_bashrc
+    dest: "/home/{{ item.username }}/.bashrc"
+    owner: "{{ item.username }}"
+    group: "{{ item.username }}"
+    mode: '0644'
+  with_items: "{{ students }}"
+  become: true

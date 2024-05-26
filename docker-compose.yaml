@@ -1,0 +1,44 @@
+version: "3"
+
+networks:
+  avm:
+    external: false
+
+services:
+  frontend:
+    image: localhost/avm-front:0.1.0
+    container_name: avm-front
+    environment:
+      - USERS_FILE: /etc/avm/users.conf
+      - SHARED_DIR_PATH: /mnt/avm-share
+      - JWT_SECRET_KEY: jdnksdfbsdjhfbqjfdbhqsflhdsqfjhqsgdjqsdfkldsqfhhsdqgfhjsdqbfhdjbsfjhb
+    networks:
+      - avm
+    volumes:
+      - ./users.json:/etc/avm/users.conf:ro
+      - shared:/mnt/avm-share
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    logging:
+      driver: "journald"
+      options:
+        tag: avm-front
+  backend:
+    image: localhost/avm-back:0.1.0
+    container_name: avm-back
+    env_file:
+    - path: ./.back.env
+    env:
+    - AVMB_SHARED_DIR_PATH: /mnt/avm-share
+    networks:
+      - avm
+    volumes:
+      - shared:/mnt/avm-share
+    restart: unless-stopped
+    logging:
+      driver: "journald"
+      options:
+        tag: avm-back
+volumes:
+  shared:

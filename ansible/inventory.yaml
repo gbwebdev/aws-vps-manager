@@ -1,0 +1,6 @@
+all:
+  hosts:
+    vps:
+      ansible_host: <<TBS>>
+      ansible_user: ubuntu
+    

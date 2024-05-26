@@ -1,0 +1,1 @@
+Use this role on a brand new Ubunu lightsail instance.

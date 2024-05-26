@@ -1,0 +1,24 @@
+packages_to_install:
+  - tree
+  - fail2ban
+
+dynhost:
+  host: vps.domain.tld
+  zone: domain.tld
+
+students:
+  - name: MCFLY Marty
+    username: mmclfy
+    mail: mmclfy@hillvalleycollege.edu
+    ssh_key: AAAAC3Nza.... 
+  - name: PARKER Jennifer
+    username: jparker
+    mail: jparker@hillvalleycollege.edu
+    ssh_key: AAAAC3Nza.... 
+   
+teacher:
+  name: BROWN Emmet
+  username: teacher  
+  mail: emmet.brown@caltech.edu
+  ssh_keys:
+  - ssh-ed25519 AAAAC3Nza.... 

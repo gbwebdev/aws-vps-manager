@@ -1,0 +1,5 @@
+- hosts: vps
+  roles:
+    - setup-new-vps
+  vars_files:
+    - vars.yaml
