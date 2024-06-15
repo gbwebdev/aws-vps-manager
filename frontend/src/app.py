@@ -139,10 +139,10 @@ def extend_time():
     """Extend sertver runtime API endpoint
     """
     duration = request.form['duration']
-    current_shutdown = read_file('spindown_scheduled')
-    if current_shutdown:
-        new_shutdown = datetime.strptime(current_shutdown, '%Y-%m-%d %H:%M:%S') + timedelta(hours=int(duration))
-        write_file('spindown_scheduled', new_shutdown.strftime('%Y-%m-%d %H:%M:%S'))
+    shutdown_time = datetime.now() + timedelta(hours=int(duration))
+
+    write_file('spinup_requested', 'true')
+    write_file('spindown_scheduled', shutdown_time.strftime('%Y-%m-%d %H:%M:%S'))
 
     return jsonify({'message': 'Time extended'})
 
